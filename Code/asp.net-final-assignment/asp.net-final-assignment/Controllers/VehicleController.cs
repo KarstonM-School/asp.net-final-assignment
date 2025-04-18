@@ -62,7 +62,7 @@ namespace asp.net_final_assignment.Controllers
                     Year = car.Year,
                     Status = car.Status
                 };
-                await vehicleDbContext.AddAsync(newCar);
+                await vehicleDbContext.Cars.AddAsync(newCar);
                 await vehicleDbContext.SaveChangesAsync();
             }
             return RedirectToAction("Index");

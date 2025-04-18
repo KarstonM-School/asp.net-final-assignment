@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("asp.net-final-assignment")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3a9e124b52973a91f86a9431a8da212440be9c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+327724c592f5bfcb268bf5cc3e10f331f826d370")]
 [assembly: System.Reflection.AssemblyProductAttribute("asp.net-final-assignment")]
 [assembly: System.Reflection.AssemblyTitleAttribute("asp.net-final-assignment")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

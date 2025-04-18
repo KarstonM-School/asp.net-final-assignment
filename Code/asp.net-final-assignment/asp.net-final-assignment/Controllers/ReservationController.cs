@@ -31,13 +31,13 @@ namespace asp.net_final_assignment.Controllers
             var today = DateTime.Today;
 
             // Load all reservations
-            var allReservations = await vehicleDbContext.Reservations
+            var reservations = vehicleDbContext.Reservations
                 .Include(r => r.Car)
                 .Include(r => r.Renter)
-                .ToListAsync();
+                .AsQueryable(); // stays in DB context
 
             // Automatically update reservation statuses
-            foreach (var res in allReservations)
+            foreach (var res in reservations)
             {
                 var car = res.Car;
                 var renter = res.Renter;
@@ -60,9 +60,6 @@ namespace asp.net_final_assignment.Controllers
             }
             await vehicleDbContext.SaveChangesAsync();
 
-            // Filtered reservation list (for search)
-            var reservations = allReservations.AsQueryable();
-
             // If search then filter
             if (!string.IsNullOrEmpty(search))
             {
@@ -71,8 +68,12 @@ namespace asp.net_final_assignment.Controllers
                     r.Car.Model.Contains(search) ||
                     r.Car.Make.Contains(search) ||
                     r.Car.Colour.Contains(search) ||
+                    r.Car.Year.ToString().Contains(search) ||
                     r.Status.Contains(search));
             }
+
+            // Filtered reservation list
+            var allReservations = await reservations.ToListAsync();
 
             // Cars not under maintenance
             var availableCars = await vehicleDbContext.Cars
@@ -91,9 +92,9 @@ namespace asp.net_final_assignment.Controllers
                 .Where(c => !reservedCarIds.Contains(c.Id))
                 .ToList();
 
-            // Add back any cars already assigned to an existing reservation (so they appear in Edit mode)
+            // Add back only the car assigned to the reservation being edited
             var editingReservationCarIds = allReservations
-                .Where(r => r.Car != null)
+                .Where(r => r.Car != null && (r.Status != "Completed" && r.End >= today))
                 .Select(r => r.Car.Id)
                 .Distinct();
 
@@ -160,27 +161,24 @@ namespace asp.net_final_assignment.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Retrieve reservation obj
                 var reservation = await vehicleDbContext.Reservations
                     .Include(r => r.Car)
                     .Include(r => r.Renter)
                     .FirstOrDefaultAsync(r => r.Id == newReservation.Id);
 
-                // Retrieve new car and renter objs
                 var newCar = await vehicleDbContext.Cars.FindAsync(newReservation.CarId);
                 var newRenter = await vehicleDbContext.Customers.FindAsync(newReservation.RenterId);
 
                 if (reservation != null && newCar != null && newRenter != null)
                 {
-                    // Reset old car/renter status if needed
+                    // Reset old car/renter status
                     if (reservation.Status != "Completed")
                     {
                         reservation.Car.Status = "Available";
                         reservation.Renter.Status = "Active";
                     }
 
-                    // Update reservation
-                    reservation.Status = newReservation.Status;
+                    // Update core fields
                     reservation.Car = newCar;
                     reservation.CarId = newReservation.CarId;
                     reservation.Renter = newRenter;
@@ -188,18 +186,36 @@ namespace asp.net_final_assignment.Controllers
                     reservation.Start = newReservation.Start;
                     reservation.End = newReservation.End;
 
-                    // Set updated status
-                    if (reservation.Status != "Completed")
+                    var today = DateTime.Today;
+
+                    // Determine new status based on dates
+                    if (reservation.End.Date <= today)
                     {
+                        reservation.Status = "Completed";
+                        newCar.Status = "Available";
+                        newRenter.Status = "Active";
+                    }
+                    else if (reservation.Start.Date > today)
+                    {
+                        reservation.Status = "Upcoming";
+                        newCar.Status = "Available";
+                        newRenter.Status = "Active";
+                    }
+                    else // within range
+                    {
+                        reservation.Status = "Confirmed";
                         newCar.Status = "Rented";
                         newRenter.Status = "Renting";
                     }
+
                     await vehicleDbContext.SaveChangesAsync();
                     return RedirectToAction("Index");
                 }
             }
+
             return View(newReservation);
         }
+
 
         // Delete Reservation
         [HttpGet]

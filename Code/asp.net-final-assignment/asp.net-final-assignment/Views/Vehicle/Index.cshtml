@@ -384,6 +384,7 @@
         document.getElementById('cardTitle').innerText = 'Add New Vehicle';
         document.getElementById('vehicleForm').action = '/vehicles/add';
         document.getElementById('vehicleForm').reset();
+        document.getElementById('carId').removeAttribute('name');
         document.getElementById('carId').value = '';
         document.getElementById('cardOverlay').style.display = 'flex';
     }
@@ -396,6 +397,7 @@
     function editCar(id, colour, model, make, year, status) {
         document.getElementById('cardTitle').innerText = 'Edit Vehicle';
         document.getElementById('vehicleForm').action = '/vehicles/edit/' + id;
+        document.getElementById('carId').setAttribute('name', 'Id')
         document.getElementById('carId').value = id;
         document.querySelector('input[name="Colour"]').value = colour;
         document.querySelector('input[name="Model"]').value = model;

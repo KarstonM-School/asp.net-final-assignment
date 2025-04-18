@@ -161,7 +161,7 @@ namespace asp.net_final_assignment.Controllers
 
             // Count total customers and divide by status
             var customerCount = await vehicleDbContext.Customers.CountAsync();
-            var activeCustomers = await vehicleDbContext.Customers.CountAsync(c => c.Status == "Active");
+            var activeCustomers = await vehicleDbContext.Customers.CountAsync(c => c.Status == "Active" || c.Status == "Renting");
             var inactiveCustomers = customerCount - activeCustomers;
 
             // Send view model

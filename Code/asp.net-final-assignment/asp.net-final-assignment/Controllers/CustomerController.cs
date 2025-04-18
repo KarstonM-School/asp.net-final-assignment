@@ -28,6 +28,7 @@ namespace asp.net_final_assignment.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 customers = customers.Where(c => c.Name.Contains(search) ||
+                                               c.Status.Contains(search) ||
                                                c.Email.Contains(search) ||
                                                c.PhoneNumber.Contains(search) ||
                                                c.PaymentType.Contains(search));

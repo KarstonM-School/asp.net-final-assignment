@@ -332,11 +332,30 @@
                 var renter = res.Renter;
 
                 // Calculate how many days remain in the reservation
-                var daysLeft = res.End > DateTime.Now ? (res.End - DateTime.Now).Days : 0;
+                int daysLeft;
+
+                if (res.Status == "Upcoming")
+                {
+                    // Days between start and end (reservation hasn't started)
+                    daysLeft = (int)Math.Ceiling((res.End - res.Start).TotalDays);
+                }
+                else if (res.Status == "Confirmed")
+                {
+                    // Days left from now until end (active reservation)
+                    daysLeft = res.End > DateTime.Now
+                    ? (int)Math.Ceiling((res.End - DateTime.Now).TotalDays)
+                    : 0;
+                }
+                else
+                {
+                    // Reservation completed
+                    daysLeft = 0;
+                }
+
                 <tr>
                     <td><strong>@res.Status</strong></td>
                     <td>@($"{car?.Colour}, {car?.Model}, {car?.Make}, {car?.Year}")</td>
-                    <td><span class="pill">@((res.End > DateTime.Now) ? $"{daysLeft} Days" : "N/A")</span></td>
+                    <td><span class="pill">@((daysLeft > 0) ? $"{daysLeft} Days" : "N/A")</span></td>
                     <td>@res.Start.ToString("MMM dd")</td>
                     <td>@res.End.ToString("MMM dd")</td>
                     <td>
@@ -370,17 +389,20 @@
         <form method="post" asp-controller="Reservation" asp-action="Add" id="reservationForm">
             <input type="hidden" id="reservationId" name="Id" />
             <select name="Status">
+                <option value="">Select a Status</option>
                 <option value="Confirmed">Confirmed</option>
                 <option value="Completed">Completed</option>
                 <option value="Upcoming">Upcoming</option>
             </select>
             <select name="CarId" required>
+                <option value="">Select a Car</option>
                 @foreach (var car in Model.Cars)
                 {
                     <option value="@car.Id">@($"{car.Colour}, {car.Model}, {car.Make}, {car.Year}")</option>
                 }
             </select>
             <select name="RenterId" required>
+                <option value="">Select a Customer</option>
                 @foreach (var renter in Model.Renters)
                 {
                     <option value="@renter.Id">@renter.Name</option>
